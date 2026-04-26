@@ -15,20 +15,23 @@ interface StationLayout {
   readonly orientation: StationOrientation;
 }
 
+const BACK_ORIGIN_Y = 0.45;
+const RIGHT_ORIGIN_X = 12.55;
+
 const BACK_WALL_STATIONS: readonly StationLayout[] = [
-  { worldX: 1.2, worldY: 0.7, orientation: 'back-wall' },
-  { worldX: 2.7, worldY: 0.7, orientation: 'back-wall' },
-  { worldX: 4.2, worldY: 0.7, orientation: 'back-wall' },
-  { worldX: 5.7, worldY: 0.7, orientation: 'back-wall' },
-  { worldX: 7.2, worldY: 0.7, orientation: 'back-wall' },
+  { worldX: 1.5, worldY: BACK_ORIGIN_Y, orientation: 'back-wall' },
+  { worldX: 2.9, worldY: BACK_ORIGIN_Y, orientation: 'back-wall' },
+  { worldX: 4.3, worldY: BACK_ORIGIN_Y, orientation: 'back-wall' },
+  { worldX: 5.7, worldY: BACK_ORIGIN_Y, orientation: 'back-wall' },
+  { worldX: 7.1, worldY: BACK_ORIGIN_Y, orientation: 'back-wall' },
 ];
 
 const RIGHT_WALL_STATIONS: readonly StationLayout[] = [
-  { worldX: 9.0, worldY: 1.4, orientation: 'right-wall' },
-  { worldX: 9.0, worldY: 2.6, orientation: 'right-wall' },
-  { worldX: 9.0, worldY: 3.8, orientation: 'right-wall' },
-  { worldX: 9.0, worldY: 5.0, orientation: 'right-wall' },
-  { worldX: 9.0, worldY: 6.2, orientation: 'right-wall' },
+  { worldX: RIGHT_ORIGIN_X, worldY: 2.4, orientation: 'right-wall' },
+  { worldX: RIGHT_ORIGIN_X, worldY: 3.8, orientation: 'right-wall' },
+  { worldX: RIGHT_ORIGIN_X, worldY: 5.2, orientation: 'right-wall' },
+  { worldX: RIGHT_ORIGIN_X, worldY: 6.6, orientation: 'right-wall' },
+  { worldX: RIGHT_ORIGIN_X, worldY: 8.0, orientation: 'right-wall' },
 ];
 
 export class LanHouseScene extends Phaser.Scene {
@@ -61,7 +64,7 @@ export class LanHouseScene extends Phaser.Scene {
     const room = new RoomView(this);
     this.worldRoot.add(room);
 
-    const counter = new CounterDesk(this, ROOM_COLS / 2 + 0.4, ROOM_ROWS / 2 + 0.2);
+    const counter = new CounterDesk(this, 5.5, 4.3);
     this.worldRoot.add(counter);
 
     const layouts: readonly StationLayout[] = [

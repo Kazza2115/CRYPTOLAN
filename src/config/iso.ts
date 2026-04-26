@@ -1,9 +1,9 @@
 export const TILE_W = 96;
 export const TILE_H = 48;
 
-export const ROOM_COLS = 10;
-export const ROOM_ROWS = 7;
-export const WALL_HEIGHT = 220;
+export const ROOM_COLS = 13;
+export const ROOM_ROWS = 9;
+export const WALL_HEIGHT = 240;
 
 export interface ScreenPoint {
   readonly x: number;
