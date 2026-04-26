@@ -5,7 +5,9 @@ import { AmbientBackground } from '../entities/AmbientBackground';
 import { CounterDesk } from '../entities/CounterDesk';
 import { HudPanel } from '../entities/HudPanel';
 import { IsoPcStation, type StationOrientation } from '../entities/IsoPcStation';
+import { RoomBackground } from '../entities/RoomBackground';
 import { RoomView } from '../entities/RoomView';
+import { ASSET_KEYS } from './BootScene';
 import { loadGameData } from '../systems/DataLoader';
 import type { GameData } from '../types';
 
@@ -61,8 +63,13 @@ export class LanHouseScene extends Phaser.Scene {
   private buildScene(): void {
     this.worldRoot.removeAll(true);
 
-    const room = new RoomView(this);
-    this.worldRoot.add(room);
+    if (this.textures.exists(ASSET_KEYS.bgGarage)) {
+      const bg = new RoomBackground(this, ASSET_KEYS.bgGarage);
+      this.worldRoot.add(bg);
+    } else {
+      const room = new RoomView(this);
+      this.worldRoot.add(room);
+    }
 
     const counter = new CounterDesk(this, 5.5, 4.3);
     this.worldRoot.add(counter);
