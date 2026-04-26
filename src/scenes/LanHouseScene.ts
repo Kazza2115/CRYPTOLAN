@@ -1,13 +1,18 @@
 import Phaser from 'phaser';
-import { Colors } from '../config/theme';
+import { Colors, Fonts, Layout } from '../config/theme';
+import { AmbientBackground } from '../entities/AmbientBackground';
+import { FloorView } from '../entities/FloorView';
+import { HudPanel } from '../entities/HudPanel';
 import { PcView } from '../entities/PcView';
 import { loadGameData } from '../systems/DataLoader';
 import type { GameData } from '../types';
 
-const PC_SPACING = 180;
-
 export class LanHouseScene extends Phaser.Scene {
   private gameData!: GameData;
+  private ambient!: AmbientBackground;
+  private pcViews: PcView[] = [];
+  private subtitle!: Phaser.GameObjects.Text;
+  private zoneLabel!: Phaser.GameObjects.Text;
 
   constructor() {
     super({ key: 'LanHouseScene' });
@@ -15,72 +20,76 @@ export class LanHouseScene extends Phaser.Scene {
 
   create(): void {
     this.gameData = loadGameData();
-
     this.cameras.main.setBackgroundColor(Colors.bgPrimary);
-    this.drawHeader();
+
+    this.ambient = new AmbientBackground(this);
+    new FloorView(this);
+    new HudPanel(this);
+    this.drawZoneCaption();
     this.drawPcs();
-    this.drawFooter();
+
+    this.scale.on('resize', this.onResize, this);
   }
 
-  private drawHeader(): void {
+  override update(time: number): void {
+    this.ambient.update(time);
+  }
+
+  private drawZoneCaption(): void {
     const { width } = this.scale;
 
-    this.add
-      .text(width / 2, 56, 'Crypto Lan', {
-        fontFamily: '"Nunito", sans-serif',
-        fontSize: '36px',
+    this.zoneLabel = this.add
+      .text(width / 2, Layout.hudHeight + 28, 'Garage', {
+        fontFamily: Fonts.body,
+        fontSize: '32px',
         fontStyle: '800',
         color: '#f8fafc',
       })
       .setOrigin(0.5, 0.5);
+    this.zoneLabel.setLetterSpacing(1);
 
-    this.add
-      .text(width / 2, 92, 'Garage · 5 PCs · phase 0 — proto vivant', {
-        fontFamily: '"Nunito", sans-serif',
-        fontSize: '14px',
+    this.subtitle = this.add
+      .text(width / 2, Layout.hudHeight + 60, 'Sous-sol clandestin · 5 PCs en service', {
+        fontFamily: Fonts.body,
+        fontSize: '13px',
+        fontStyle: '600',
         color: '#94a3b8',
       })
       .setOrigin(0.5, 0.5);
+    this.subtitle.setAlpha(0.85);
   }
 
   private drawPcs(): void {
+    this.pcViews.forEach((p) => p.destroy());
+    this.pcViews = [];
+
     const { width, height } = this.scale;
     const count = this.gameData.pcs.length;
-    const centerY = height / 2 + 10;
-    const totalWidth = (count - 1) * PC_SPACING;
+    const baseY = height * 0.72;
+    const totalWidth = (count - 1) * Layout.pcSpacing;
     const startX = width / 2 - totalWidth / 2;
 
     this.gameData.pcs.forEach((pc, index) => {
-      const x = startX + index * PC_SPACING;
-      const view = new PcView(this, x, centerY, pc);
-
+      const x = startX + index * Layout.pcSpacing;
+      const view = new PcView(this, x, baseY, pc);
       view.alpha = 0;
-      view.y = centerY + 24;
+      view.y = baseY + 30;
       this.tweens.add({
         targets: view,
         alpha: 1,
-        y: centerY,
-        duration: 420,
+        y: baseY,
+        duration: 520,
         ease: 'Back.easeOut',
-        delay: 80 * index,
+        delay: 90 * index,
       });
+      this.pcViews.push(view);
     });
   }
 
-  private drawFooter(): void {
-    const { width, height } = this.scale;
-
-    this.add
-      .text(
-        width / 2,
-        height - 48,
-        `${this.gameData.characters.length} persos charges · ${this.gameData.games.length} jeux PC`,
-        {
-          fontFamily: '"JetBrains Mono", monospace',
-          fontSize: '12px',
-          color: '#64748b',
-        },
-      )
-      .setOrigin(0.5, 0.5);
-  }
+  private onResize = (gameSize: Phaser.Structs.Size): void => {
+    const { width } = gameSize;
+    this.zoneLabel.setPosition(width / 2, Layout.hudHeight + 28);
+    this.subtitle.setPosition(width / 2, Layout.hudHeight + 60);
+    this.drawPcs();
+  };
 }
