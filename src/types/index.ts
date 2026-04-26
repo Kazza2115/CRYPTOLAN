@@ -32,6 +32,7 @@ export interface Pc {
   readonly id: string;
   readonly slotIndex: number;
   readonly tier: PcTier;
+  readonly locked: boolean;
   occupantId: string | null;
 }
 

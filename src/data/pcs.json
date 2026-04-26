@@ -1,7 +1,12 @@
 [
-  { "id": "pc-1", "slotIndex": 0, "tier": "trash", "occupantId": null },
-  { "id": "pc-2", "slotIndex": 1, "tier": "trash", "occupantId": null },
-  { "id": "pc-3", "slotIndex": 2, "tier": "trash", "occupantId": null },
-  { "id": "pc-4", "slotIndex": 3, "tier": "trash", "occupantId": null },
-  { "id": "pc-5", "slotIndex": 4, "tier": "trash", "occupantId": null }
+  { "id": "pc-1", "slotIndex": 0, "tier": "trash", "locked": false, "occupantId": null },
+  { "id": "pc-2", "slotIndex": 1, "tier": "trash", "locked": false, "occupantId": null },
+  { "id": "pc-3", "slotIndex": 2, "tier": "trash", "locked": false, "occupantId": null },
+  { "id": "pc-4", "slotIndex": 3, "tier": "trash", "locked": false, "occupantId": null },
+  { "id": "pc-5", "slotIndex": 4, "tier": "trash", "locked": false, "occupantId": null },
+  { "id": "pc-6", "slotIndex": 5, "tier": "trash", "locked": true, "occupantId": null },
+  { "id": "pc-7", "slotIndex": 6, "tier": "trash", "locked": true, "occupantId": null },
+  { "id": "pc-8", "slotIndex": 7, "tier": "trash", "locked": true, "occupantId": null },
+  { "id": "pc-9", "slotIndex": 8, "tier": "trash", "locked": true, "occupantId": null },
+  { "id": "pc-10", "slotIndex": 9, "tier": "trash", "locked": true, "occupantId": null }
 ]
