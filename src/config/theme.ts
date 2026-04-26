@@ -5,7 +5,7 @@ export const Colors = {
   bgPanel: 0xffffff,
   bgPanelLight: 0xfafafa,
 
-  voidBg: 0x15182a,
+  voidBg: 0x2d2e32,
 
   ink: 0x111111,
   inkSoft: 0x444444,
