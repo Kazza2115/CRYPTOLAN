@@ -8,7 +8,7 @@ PC (Steam) · iOS · Free-to-play · Pas de NFT
 
 ## Statut
 
-🟡 **Phase 0 → Phase 1** — Pré-production, pas encore de code.
+🟢 **Phase 1 — Prototype vertical en cours.** Premier rendu visible : LAN-House du Garage avec 5 PCs.
 
 ## Documents de design
 
@@ -20,36 +20,46 @@ PC (Steam) · iOS · Free-to-play · Pas de NFT
 
 ## Stack technique
 
-**Pas encore figé.** À trancher avant le premier scaffolding.
+- **TypeScript** strict (typage partout, JSON pour les données de jeu)
+- **Vite** (dev server avec hot-reload, build de prod)
+- **Phaser 3** (moteur 2D, rendu Canvas/WebGL)
+- **GitHub Pages** (déploiement auto à chaque push via GitHub Actions)
 
-Options :
-- Godot 4 (GDScript ou C#)
-- Unity 6 (C#)
-- Web-first (TypeScript + Phaser/Pixi)
+Choix : web-first pour permettre une boucle de feedback rapide — chaque push déploie une nouvelle version visible dans un navigateur, sans rien à installer côté observateur.
+
+## Lancer en local
+
+```bash
+npm install
+npm run dev
+```
+
+Puis ouvrir [http://localhost:5173](http://localhost:5173).
+
+## Voir l'avancement en ligne
+
+Une fois GitHub Pages activé sur le repo (**Settings → Pages → Source : *GitHub Actions***), chaque push sur `main` ou sur la branche de dev déclenche un déploiement.
+
+URL une fois activé : `https://kazza2115.github.io/CRYPTOLAN/`
+
+## Structure du projet
+
+```
+src/
+  config/        # palette de couleurs, fonts (Neon Flat)
+  types/         # interfaces TS (Character, Pc, PcGame...)
+  data/          # JSON sources (jamais hardcodés en code)
+  systems/       # chargeurs et systèmes (DataLoader...)
+  entities/      # vues Phaser (PcView...)
+  scenes/        # BootScene, LanHouseScene
+  main.ts        # bootstrap Phaser
+```
+
+Conventions : un système = un fichier, pas de god objects, données toujours en JSON externe.
 
 ## Travailler avec Claude Code
 
-Ce repo contient un `CLAUDE.md` à la racine qui donne à Claude Code tout le
-contexte nécessaire pour contribuer au projet. Clone le repo, ouvre un terminal
-dedans, et lance `claude`.
-
-### Premiers prompts suggérés
-
-**Discussion tech :**
-> Lis le CLAUDE.md, le GDD et l'ART_DIRECTION. Donne-moi ton analyse des 3
-> options de stack au regard des priorités du projet. Recommande-en une.
-
-**Structure de projet :**
-> Propose-moi une structure de dossiers pour le prototype vertical (section 10
-> Phase 1 du GDD). Ne scaffolde rien encore.
-
-**Modélisation des données :**
-> Propose un schéma de données pour les entités centrales : Character, Archetype,
-> Skill, Equipment, PC, Game, Match. En interfaces TypeScript.
-
-**Démarrer le proto :**
-> On démarre le prototype. Stack : [TA STACK]. Commence par scaffolder le projet
-> et afficher la LAN-House avec 5 PCs vides.
+Ce repo contient un `CLAUDE.md` à la racine qui donne à Claude Code tout le contexte nécessaire pour contribuer. Clone le repo, ouvre un terminal dedans, et lance `claude`.
 
 ## Références visuelles
 

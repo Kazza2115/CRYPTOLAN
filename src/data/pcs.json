@@ -1,0 +1,7 @@
+[
+  { "id": "pc-1", "slotIndex": 0, "tier": "trash", "occupantId": null },
+  { "id": "pc-2", "slotIndex": 1, "tier": "trash", "occupantId": null },
+  { "id": "pc-3", "slotIndex": 2, "tier": "trash", "occupantId": null },
+  { "id": "pc-4", "slotIndex": 3, "tier": "trash", "occupantId": null },
+  { "id": "pc-5", "slotIndex": 4, "tier": "trash", "occupantId": null }
+]

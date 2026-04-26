@@ -1,0 +1,92 @@
+[
+  {
+    "id": "viktor-volkov",
+    "name": "Viktor Volkov",
+    "nickname": "LegendaryGrind",
+    "archetype": "grinder",
+    "rarity": "legend",
+    "stars": 1,
+    "lore": "Ex-mineur de bitcoin reconverti en farmeur professionnel."
+  },
+  {
+    "id": "miyu-nakamura",
+    "name": "Miyu Nakamura",
+    "nickname": "Queen AFK",
+    "archetype": "strategist",
+    "rarity": "legend",
+    "stars": 1,
+    "lore": "Streameuse japonaise, a gagne un tournoi en etant deconnectee."
+  },
+  {
+    "id": "raphael-martinez",
+    "name": "Raphael Martinez",
+    "nickname": "TheGoat",
+    "archetype": "fragger",
+    "rarity": "esport",
+    "stars": 1,
+    "lore": "One-shot les ennemis sous 20% HP."
+  },
+  {
+    "id": "seoyeon-kim",
+    "name": "Seo-yeon Kim",
+    "nickname": "IceCold",
+    "archetype": "laner",
+    "rarity": "esport",
+    "stars": 1,
+    "lore": "Ne perd jamais en late game."
+  },
+  {
+    "id": "lena-schmidt",
+    "name": "Lena Schmidt",
+    "nickname": "FramePerfect",
+    "archetype": "speedrunner",
+    "rarity": "esport",
+    "stars": 1,
+    "lore": "Parties -40% duree sans perte de gains."
+  },
+  {
+    "id": "marcus-okafor",
+    "name": "Marcus Okafor",
+    "nickname": "GalaxyBrain",
+    "archetype": "strategist",
+    "rarity": "esport",
+    "stars": 1,
+    "lore": "Active des combos d'equipe invisibles."
+  },
+  {
+    "id": "julien-nightowl",
+    "name": "Julien",
+    "nickname": "NightOwl",
+    "archetype": "laner",
+    "rarity": "pro",
+    "stars": 1,
+    "lore": "Plus 60 pourcent de gains entre minuit et 6h."
+  },
+  {
+    "id": "bradley-ragequit",
+    "name": "Bradley",
+    "nickname": "RageQuit",
+    "archetype": "fragger",
+    "rarity": "pro",
+    "stars": 1,
+    "lore": "Moins 50 pourcent de gains sur defaite, plus 100 sur victoire."
+  },
+  {
+    "id": "kevin-noscope",
+    "name": "Kevin Dubois",
+    "nickname": "NoScope420",
+    "archetype": "fragger",
+    "rarity": "noob",
+    "stars": 1,
+    "lore": "Ultimate : Papa debranche la freebox."
+  },
+  {
+    "id": "mamie-solitaire",
+    "name": "Grand-mere Solitaire",
+    "nickname": "GrannyAFK",
+    "archetype": "strategist",
+    "rarity": "noob",
+    "stars": 1,
+    "lore": "78 ans, joue au solitaire, fait crash le jeu adverse."
+  }
+]

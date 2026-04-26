@@ -1,0 +1,34 @@
+[
+  {
+    "id": "surviv-crypto",
+    "name": "SurvivCrypto",
+    "durationMin": 720,
+    "winRate": 0.62,
+    "favoredArchetype": "grinder",
+    "baseReward": 1200
+  },
+  {
+    "id": "league-of-cryptos",
+    "name": "LeagueOfCryptos",
+    "durationMin": 1020,
+    "winRate": 0.74,
+    "favoredArchetype": "laner",
+    "baseReward": 1700
+  },
+  {
+    "id": "crycounter-strike",
+    "name": "CryCounter-Strike",
+    "durationMin": 240,
+    "winRate": 0.55,
+    "favoredArchetype": "fragger",
+    "baseReward": 480
+  },
+  {
+    "id": "hearthscam",
+    "name": "HearthScam",
+    "durationMin": 480,
+    "winRate": 0.8,
+    "favoredArchetype": "strategist",
+    "baseReward": 800
+  }
+]

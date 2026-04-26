@@ -1,0 +1,20 @@
+{
+  "name": "crypto-lan",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "description": "Idle RPG gacha — cybercafe management. Prototype vertical.",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "phaser": "^3.80.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.5",
+    "vite": "^5.2.10"
+  }
+}
