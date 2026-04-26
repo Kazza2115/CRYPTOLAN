@@ -1,23 +1,51 @@
 # Crypto Lan — Production des assets
 
-> Ce document liste tous les assets graphiques nécessaires pour reproduire la
-> DA "Isometric Cozy Cybercafé" (voir `docs/ART_DIRECTION.md`) et fournit les
-> prompts standardisés à utiliser avec Gemini / Midjourney / Stable Diffusion.
+> Ce document décrit le workflow officiel de production d'assets pour Crypto Lan.
+> Pipeline principal : **modélisation 3D dans Spline → export PNG iso 2D → intégration Phaser**.
 
 ---
 
-## 1. Workflow de production
+## 1. Workflow de production (Spline)
 
-1. **Tu génères** un asset via Gemini (ou autre outil image) en utilisant le prompt fourni dans ce doc.
-2. **Tu vérifies** que le rendu est cohérent avec la DA (cosy, chibi, isométrique, palette chaude). Sinon, régénère.
-3. **Tu sauvegardes** l'image au format PNG avec **fond transparent** dans le dossier indiqué (`public/assets/<categorie>/<nom>.png`).
-4. **Tu commit + push** sur la branche `claude/realtime-game-progress-66KUd` (ou tu m'envoies le fichier et je le commit).
-5. **Je l'intègre** dans le code Phaser dès qu'il est dans le repo.
+1. **Tu modélises** l'objet (pièce, mobilier, perso) dans [Spline](https://spline.design) avec une scène dédiée.
+2. **Tu configures la caméra iso** une fois pour toutes (cf. §1.1 ci-dessous) — c'est le paramètre critique pour que tous les assets s'alignent dans Phaser.
+3. **Tu exportes en PNG** avec fond transparent et résolution 2x (cf. §1.2).
+4. **Tu déposes le PNG** dans `public/assets/<categorie>/<nom>.png` selon le naming conventionnel.
+5. **Tu commit + push** sur la branche `claude/realtime-game-progress-66KUd`.
+6. **J'intègre** dans le code Phaser dès que le fichier est dans le repo.
 
-> **Important** : pour que les assets s'intègrent proprement, ils doivent être
-> en **fond transparent** (PNG avec canal alpha), **vue isométrique stricte**
-> (angle 30°, ratio 2:1), et avec une **résolution suffisante** (idéalement
-> 2x la taille d'affichage prévue, pour rester net sur écrans HiDPI).
+### 1.1 Paramètres caméra iso (à régler dans Spline)
+
+Pour matcher exactement la projection iso utilisée dans Phaser (`TILE_W=96, TILE_H=48`, ratio 2:1) :
+
+| Paramètre | Valeur |
+|---|---|
+| Type de caméra | **Orthographic** (pas Perspective !) |
+| Rotation X (pitch / down-tilt) | **30°** |
+| Rotation Y (yaw / horizontal) | **45°** |
+| Rotation Z | 0° |
+| Position | n'importe où sur la diagonale, pointée vers l'origine |
+| Zoom / Ortho size | à ajuster selon l'objet |
+
+**Astuce** : dans Spline, crée une scène-modèle avec cette caméra déjà configurée et duplique-la pour chaque nouvel asset. Comme ça, l'angle est strictement identique pour tous les exports → cohérence visuelle parfaite.
+
+### 1.2 Paramètres d'export
+
+| Paramètre | Valeur |
+|---|---|
+| Format | **PNG** |
+| Background | **Transparent** (toggle dans les options d'export) |
+| Résolution | **2x** la taille d'affichage cible (cf. tableau §3) |
+| Anti-aliasing | activé |
+| Shadow plane | désactivé (sinon le sprite a une ombre intégrée moche, on en dessine en code) |
+
+### 1.3 Conseils de modélisation pour cohérence visuelle
+
+- **Lighting unifié** : utilise la **même config de lumières** dans toutes tes scènes (1 ambient + 1 directional inclinée à -45° en Y, intensité ~0.8). Sans ça, chaque objet aura un éclairage différent et ne fittera pas dans la pièce.
+- **Material shading** : reste sur des **toon shaders** ou des matériaux flat-shaded simples. Évite les PBR réalistes — ça ne colle pas avec le style cartoon de la DA.
+- **Échelle uniforme** : définis une **unité de référence** (ex : 1 mètre Spline = 1 tile Phaser). Note-la quelque part. Toutes tes modélisations doivent respecter cette échelle pour que les proportions soient correctes en jeu.
+- **Pas d'ombre portée modélisée** : laisse Phaser dessiner les ombres au sol. Désactive le shadow plane à l'export.
+- **Centre du sprite** : positionne ton modèle avec son **point d'ancrage au sol au centre de la scène Spline** (origine 0,0,0). Comme ça, en Phaser je peux placer le sprite à des coordonnées iso précises sans calculer d'offset.
 
 ---
 
@@ -126,170 +154,108 @@ Exemples :
 
 ---
 
-## 4. Prompts Gemini standardisés
+## 4. Specs par asset (Spline)
 
-### 4.1 Style consigne (à inclure dans tous les prompts)
+> Pour chaque asset, modélise la scène, place ton modèle au centre (0,0,0)
+> avec son ancre au sol au point central, applique la caméra iso (cf. §1.1),
+> applique le lighting unifié (cf. §1.3), et exporte en PNG transparent à la
+> résolution indiquée.
 
-```
-Style: 2D cartoon shaded illustration, cozy isometric cybercafé aesthetic,
-similar to Cookie Run Kingdom and AFK Journey character art mixed with
-Stardew Valley warmth. Clean outlines, soft shadows, warm color palette
-(brown wood, red rug, cream walls, warm lighting). NO pixel art, NO 3D
-render, NO realistic textures, NO photorealism. Fond transparent (PNG
-with alpha channel). Strict isometric projection, 30 degree angle, 2:1
-tile ratio. No background, no shadow on the floor.
-```
+### 4.1 Background pièce (Garage)
 
-### 4.2 Background pièce (P0)
+- **But** : pièce vide (sol + 2 murs visibles), sans mobilier ni perso.
+- **Spline** : modélise un cube creux, soustrais le mur avant et le mur gauche pour ne garder que back-wall + right-wall + sol. Ajoute néons / texture béton / petits détails (fissures, cailloux, sticker).
+- **Résolution export** : 2560 × 1440 (couvre largement les écrans HD).
+- **Background** : transparent.
+- **Référence actuelle** : `public/assets/bg/bg-room-garage.png` (1344×768, à régénérer en plus haute résolution si besoin).
 
-```
-Isometric cozy cybercafé empty room, viewed from front-left corner.
-Two visible walls (back and right), wooden parquet floor with a large
-red persian rug in the center, cream-colored walls. String lights with
-small golden bulbs hanging along the upper edges of both walls.
-Decorative LED hexagons on the back wall (cyan, magenta, lime green
-glow). Wooden baseboards. The room is empty: no furniture, no
-characters. Warm cozy lighting. Negative space outside the room is
-dark navy blue (#1f2541).
+### 4.2 Mobilier — Chaise gaming
 
-Style: 2D cartoon shaded illustration, cozy isometric cybercafé
-aesthetic, similar to Cookie Run Kingdom mixed with Stardew Valley.
-Clean outlines, soft shadows, warm palette. NO pixel art, NO 3D
-render, NO photorealism. Strict isometric projection 30 degrees.
+- **But** : une chaise standalone, sans bureau, sans perso assis dessus.
+- **Spline** : tu modélises une chaise gaming générique (dossier haut, ailes latérales, assise, pied 5 branches avec roulettes). Une seule fois.
+- **Variantes de couleur** : duplique la scène, change le matériau du dossier (vert, marron, rouge, gris, bleu), re-render. Tu obtiens 5 PNG en 5 minutes.
+- **Résolution export** : 512 × 512.
+- **Ancre** : pied central de la chaise au sol = origine 0,0,0.
 
-Resolution: 2560x1440.
-```
+### 4.3 Mobilier — Bureau gaming
 
-### 4.3 Mobilier — Chaise gaming
+- **But** : bureau seul, sans tour PC ni écran ni accessoires.
+- **Spline** : top en bois clair, structure métal noir, RGB strip optionnel.
+- **Deux variantes nécessaires** :
+  - `furniture-desk-back.png` : bureau orienté pour s'adosser au mur arrière (le côté long est parallèle à l'axe X iso).
+  - `furniture-desk-right.png` : même bureau orienté pour s'adosser au mur droit (le côté long est parallèle à l'axe Y iso).
+  - Dans Spline : modélise une fois, exporte deux fois en tournant la caméra autour du modèle de 90° (ou en tournant le modèle).
+- **Résolution export** : 512 × 512.
 
-```
-A single isometric gaming chair, viewed from 3/4 back angle (back of
-chair facing the camera), green and black color scheme, sleek modern
-shape with side wings, headrest, 5-spoke wheeled base. Cartoon shaded
-2D illustration with clean outline and soft shadows. Transparent
-background. Strict isometric projection 30 degrees. NO pixel art, NO
-3D render. Style similar to Cookie Run Kingdom furniture assets.
+### 4.4 Mobilier — Tour PC
 
-Resolution: 512x512. PNG with transparent background.
-```
+- **But** : tour seule, posée au sol à droite/gauche du bureau.
+- **Spline** : boîtier vertical noir, LED frontale colorée (rouge, cyan, ou autre selon variante).
+- **Résolution export** : 256 × 384.
 
-(Régénérer en remplaçant "green and black" par "brown / red / grey / blue" pour les variantes de couleur.)
+### 4.5 Mobilier — Écran
 
-### 4.4 Mobilier — Bureau gaming
+- **But** : moniteur sur stand, écran allumé sur scène générique de jeu.
+- **Spline** : modélise un écran 24" sur stand. Pour le contenu de l'écran, plusieurs options :
+  - Texture appliquée sur la dalle (tu peux importer une image de placeholder)
+  - Plan luminescent simple si tu veux un look "écran allumé sans détail"
+- **Résolution export** : 384 × 384.
 
-```
-A single isometric gaming desk, viewed in strict isometric 30 degrees
-projection. Light wood top, black metal frame, soft RGB underglow on
-the front edge. Empty top (no monitor, no keyboard, just the desk).
-Cartoon shaded 2D illustration with clean outline and soft shadows.
-Transparent background. NO pixel art, NO 3D render.
+### 4.6 Personnages chibi (template par archétype)
 
-Resolution: 512x512. PNG with transparent background.
-```
+> Spline n'est pas l'outil idéal pour des personnages organiques : il est plus
+> orienté primitives géométriques. Pour les persos chibi, plusieurs options.
 
-(Pour la version "right-wall", ajouter : *"oriented so its long edge runs front-to-back (depth-aligned), perpendicular to the back-wall version"*.)
+**Option A — Modéliser dans Spline avec primitives**
+- Capsules + sphères + cylindres pour faire un perso très stylisé (très géométrique, à la Voodoo Apps / Bonfire). Marche bien si tu acceptes un look ultra-cartoon minimaliste.
 
-### 4.5 Mobilier — Tour PC
+**Option B — Modéliser dans Blender, importer en GLTF dans Spline**
+- Tu utilises un base mesh chibi tout fait (asset libre sur Sketchfab, Itch.io, Mixamo) et tu l'importes dans Spline. Plus complexe mais beaucoup plus joli.
 
-```
-A single isometric PC tower (vertical computer case), black with a
-glowing red LED stripe on the front. Slim modern design, sitting on
-the floor. Cartoon shaded 2D illustration, clean outline, soft shadow
-on the body. Transparent background. NO pixel art, NO 3D render.
-Strict isometric 30 degrees.
+**Option C — Garder les persos en IA d'image (Midjourney avec --sref pointant vers une image générée Spline)**
+- Tu utilises Spline pour le décor + mobilier (où la cohérence est critique) et tu gardes Midjourney pour les persos (où la variété est désirable).
 
-Resolution: 256x384. PNG with transparent background.
-```
+→ **Recommandation** : démarre avec l'option A (Spline primitives) pour un placeholder. Quand tu seras prêt à produire les 50 persos, on rebasculera sur option B ou C selon ton budget temps.
 
-### 4.6 Mobilier — Écran allumé
+- **Résolution export** : 256 × 256 (assis) / 384 × 512 (debout).
+- **Ancre** : pieds du perso à 0,0,0.
 
-```
-A single isometric computer monitor (flat screen, 24"), the screen
-displaying a colorful pixel-game-style scene (forest with mountains,
-small character, like a parody of a video game). Black bezel, on a
-small stand. Cartoon shaded 2D illustration, clean outline.
-Transparent background. NO pixel art on the body, the screen content
-can have a stylized "in-game" look. Strict isometric 30 degrees.
-
-Resolution: 384x384. PNG with transparent background.
-```
-
-### 4.7 Personnage chibi assis (template par archétype)
-
-```
-A single chibi-style character sitting on a gaming chair, viewed from
-3/4 back angle (so we see the back of their head and shoulders).
-[ARCHETYPE_DESCRIPTION]. Big head, small body, hands resting on a
-keyboard or mouse. Cartoon shaded 2D illustration, clean outline,
-soft shadows. Transparent background (no chair visible, just the
-character — the chair will be a separate sprite). NO pixel art, NO
-3D render. Style similar to Cookie Run Kingdom characters.
-
-Resolution: 256x256. PNG with transparent background.
-```
-
-Remplacements pour `[ARCHETYPE_DESCRIPTION]` :
-
-| Archétype | Description à coller |
+Variantes par archétype (gestes / accessoires distinctifs) :
+| Archétype | Geste / accessoire |
 |---|---|
-| Fragger | `young man wearing a red gaming hoodie, headset with mic, intense expression, fingerless gloves, twitching shoulders mid-action` |
-| Laner | `young woman with long hair tied in a low ponytail, blue oversized hoodie, calm focused expression, sipping a coffee mug` |
-| Strategist | `older man with glasses and a knit cardigan, gray hair, thoughtful expression, hand on chin like a chess player` |
-| Speedrunner | `androgynous young person wearing a yellow tracksuit jacket, headband, energetic posture, mouth open in concentration` |
-| Grinder | `bulky man with messy brown hair, oversized brown hoodie, tired expression with dark circles under eyes, holding an energy drink can` |
+| Fragger | mains crispées, casque audio + micro, posture tendue |
+| Laner | posture détendue, mug à la main, lunettes |
+| Strategist | menton sur la main, posture pensive, cardigan / vieux pull |
+| Speedrunner | bouge constamment, bandeau, montre visible |
+| Grinder | avachi, cernes, canette d'energy drink à portée |
 
-### 4.8 Le gérant (avatar joueur)
+### 4.7 Comptoir central
 
-```
-A single chibi-style character standing behind a counter, viewed from
-front (facing the camera, slight 3/4 turn). Friendly young adult,
-brown messy hair, white t-shirt under an open denim jacket, smiling
-softly, one arm leaning on the counter. The counter is NOT in the
-image, only the character from the waist up. Cartoon shaded 2D
-illustration, clean outline, soft shadows. Transparent background.
-NO pixel art, NO 3D render. Style similar to Cookie Run Kingdom.
+- **But** : comptoir de gestion, plus haut qu'un bureau standard.
+- **Spline** : volume cubique en bois clair avec top contrasté. Sur le top : caisse enregistreuse, écran de gestion, boîte de pizza.
+- **Résolution export** : 768 × 512.
 
-Resolution: 384x512. PNG with transparent background.
-```
+### 4.8 Plantes en pot
 
-### 4.9 Plante en pot
+- **Spline** : pot terracotta + feuilles primitives (plans courbés ou meshes simples).
+- Variantes : monstera, cactus, palmier nain.
+- **Résolution export** : 256 × 384.
 
-```
-A single isometric potted plant (monstera deliciosa, with several
-large fenestrated leaves) in a terracotta pot. Cartoon shaded 2D
-illustration, clean outline, soft shadows. Transparent background.
-Strict isometric 30 degrees. NO pixel art, NO 3D render.
+### 4.9 Posters muraux
 
-Resolution: 256x384. PNG with transparent background.
-```
+- **Hors Spline** : un poster est une image plate. Tu peux les générer avec **Ideogram** (qui gère bien le texte parodique) puis les coller comme texture sur un plan dans Spline (au moment du render de pièce complète) OU les afficher directement comme overlay 2D sur le mur dans Phaser (plus flexible).
+- **Résolution export** : 256 × 384 chaque.
 
-### 4.10 Comptoir central
+### 4.10 Goodies de bureau (canette, mug, chips, pizza)
 
-```
-A single isometric reception/management counter for a gaming café,
-medium height, light wood with a darker top, viewed from 3/4 angle
-showing front and one side. Has a small cash register, a glowing
-monitor, and a pizza box on top. NO character behind the counter.
-Cartoon shaded 2D illustration, clean outline, soft shadows.
-Transparent background. Strict isometric 30 degrees.
+- **Spline** : primitives simples avec texture/couleur, parfait pour ces objets.
+- **Résolution export** : 128 × 128 chaque.
 
-Resolution: 768x512. PNG with transparent background.
-```
+### 4.11 Icônes HUD (LanCoin, Energy, Street Cred)
 
-### 4.11 Icônes HUD
-
-```
-A single isometric icon of [ICON_DESCRIPTION], slightly tilted forward
-(15 degrees), with a soft glow around it. Cartoon shaded 2D
-illustration. Transparent background. NO pixel art, NO 3D render.
-
-Resolution: 256x256. PNG with transparent background.
-```
-
-Remplacements `[ICON_DESCRIPTION]` :
-- LanCoin : `a stylized golden coin with a "LAN" letter etched on the front, cyan glow`
-- Energy Drink : `a small can of "Energy" drink, purple/violet color, lightning bolt logo, violet glow`
-- Street Cred : `a graffiti-style golden star with sharp edges, gold glow`
+- **Spline** : tu peux modéliser une pièce 3D, une canette ou une étoile en primitive, render avec léger glow.
+- **Alternative** : icônes 2D vectorielles (Figma, Illustrator) pour un rendu plus propre / cohérent en UI.
+- **Résolution export** : 128 × 128.
 
 ---
 
@@ -327,16 +293,18 @@ Pour avoir le proto vertical jouable le plus vite possible :
 
 ---
 
-## 6. Si Gemini ne suit pas la consigne "isométrique strict"
+## 6. Vérification d'un asset avant intégration
 
-C'est la difficulté #1 avec les IA d'image : elles dévient souvent de la projection isométrique vers du 3/4 cinématographique ou du flat 2D pur. Astuces :
+Avant de pousser un PNG dans le repo, vérifier :
 
-- **Réessayer plusieurs fois** : la même prompt peut donner 5 résultats différents.
-- **Insister dans le prompt** : `"strict 30-degree isometric projection, 2:1 tile ratio, like a Stardew Valley screenshot"`.
-- **Référencer un jeu connu** : `"in the visual style of Tiny Tower / Pocket City / Stardew Valley"`.
-- **Editer l'image après** : si l'angle est légèrement off, on peut compenser au montage en CSS transform ou redresser le sprite dans Phaser.
+- [ ] **Format** : PNG, fond **transparent** (canal alpha présent — vérifie avec un outil ou en l'ouvrant sur un fond coloré).
+- [ ] **Angle iso** : le modèle est bien en 2:1 (les bords horizontaux du dessus sont 2x plus larges que les bords verticaux). Si la caméra Spline est correctement réglée, c'est automatique.
+- [ ] **Pas d'ombre portée** modélisée dans le sprite (sinon on en aura deux : celle du sprite + celle dessinée par Phaser).
+- [ ] **Centre / ancre** : le point (0,0,0) de la scène Spline correspond au point d'ancrage souhaité (généralement le sol au centre).
+- [ ] **Lighting** : cohérent avec les autres assets (même direction de lumière, même intensité). Sinon le mobilier ne s'intégrera pas dans la pièce.
+- [ ] **Résolution** : conforme au tableau §3 (2x cible HiDPI).
 
-Si Gemini dérive trop, **Midjourney v6** ou **Stable Diffusion XL** avec un LoRA "isometric" sont des alternatives à essayer.
+Si un asset ne passe pas ces checks, mieux vaut le re-render proprement dans Spline que de tenter de le rattraper en post-prod.
 
 ---
 
@@ -344,7 +312,7 @@ Si Gemini dérive trop, **Midjourney v6** ou **Stable Diffusion XL** avec un LoR
 
 Liste des assets reçus / intégrés (à mettre à jour au fil des livraisons) :
 
-- [ ] `bg-room-garage.png`
+- [x] `bg-room-garage.png` (1344×768, sous-sol béton avec néons — livré)
 - [ ] `furniture-desk-back.png`
 - [ ] `furniture-desk-right.png`
 - [ ] `furniture-chair-green.png`
