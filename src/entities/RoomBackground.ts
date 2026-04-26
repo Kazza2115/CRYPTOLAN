@@ -1,47 +1,40 @@
 import Phaser from 'phaser';
-import { ROOM_COLS, ROOM_ROWS, WALL_HEIGHT, iso } from '../config/iso';
 
 export class RoomBackground extends Phaser.GameObjects.Container {
   private readonly image: Phaser.GameObjects.Image;
+  private readonly textureKey: string;
 
   constructor(scene: Phaser.Scene, textureKey: string) {
     super(scene, 0, 0);
     scene.add.existing(this);
     this.setDepth(-50);
+    this.textureKey = textureKey;
 
-    const corners = [
-      iso(0, 0, 0),
-      iso(ROOM_COLS, 0, 0),
-      iso(ROOM_COLS, ROOM_ROWS, 0),
-      iso(0, ROOM_ROWS, 0),
-      iso(0, 0, WALL_HEIGHT),
-      iso(ROOM_COLS, 0, WALL_HEIGHT),
-      iso(ROOM_COLS, ROOM_ROWS, WALL_HEIGHT),
-    ];
-    const minX = Math.min(...corners.map((c) => c.x));
-    const maxX = Math.max(...corners.map((c) => c.x));
-    const minY = Math.min(...corners.map((c) => c.y));
-    const maxY = Math.max(...corners.map((c) => c.y));
-
-    const targetWidth = maxX - minX;
-    const targetHeight = maxY - minY;
-    const targetCenterX = (minX + maxX) / 2;
-    const targetCenterY = (minY + maxY) / 2;
-
-    this.image = scene.add.image(targetCenterX, targetCenterY, textureKey);
+    this.image = scene.add.image(0, 0, textureKey);
     this.image.setOrigin(0.5, 0.5);
-
-    const tex = scene.textures.get(textureKey).getSourceImage();
-    const naturalWidth = (tex as HTMLImageElement | HTMLCanvasElement).width;
-    const naturalHeight = (tex as HTMLImageElement | HTMLCanvasElement).height;
-
-    if (naturalWidth > 0 && naturalHeight > 0) {
-      const scaleX = targetWidth / naturalWidth;
-      const scaleY = targetHeight / naturalHeight;
-      const scale = Math.max(scaleX, scaleY);
-      this.image.setScale(scale);
-    }
-
     this.add(this.image);
+
+    this.applyCover();
+    scene.scale.on('resize', this.applyCover, this);
+  }
+
+  private applyCover = (): void => {
+    const { width, height } = this.scene.scale;
+    const source = this.scene.textures.get(this.textureKey).getSourceImage();
+    const naturalW = (source as HTMLImageElement | HTMLCanvasElement).width;
+    const naturalH = (source as HTMLImageElement | HTMLCanvasElement).height;
+    if (!naturalW || !naturalH) return;
+
+    const scaleX = width / naturalW;
+    const scaleY = height / naturalH;
+    const scale = Math.max(scaleX, scaleY);
+
+    this.image.setScale(scale);
+    this.image.setPosition(width / 2, height / 2);
+  };
+
+  override destroy(fromScene?: boolean): void {
+    this.scene.scale.off('resize', this.applyCover, this);
+    super.destroy(fromScene);
   }
 }
