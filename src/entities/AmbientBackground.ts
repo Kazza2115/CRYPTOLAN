@@ -17,7 +17,7 @@ export class AmbientBackground extends Phaser.GameObjects.Container {
   private draw = (): void => {
     const { width, height } = this.scene.scale;
     this.bg.clear();
-    this.bg.fillStyle(Colors.bgPrimary, 1);
+    this.bg.fillStyle(Colors.voidBg, 1);
     this.bg.fillRect(0, 0, width, height);
   };
 
