@@ -1,13 +1,18 @@
 export const Colors = {
-  bgPrimary: 0x1a1a2e,
-  bgSecondary: 0x16213e,
-  bgTertiary: 0x0f0f1a,
-  bgPanel: 0x1f2747,
-  bgPanelLight: 0x2a3358,
+  bgPrimary: 0xffffff,
+  bgSecondary: 0xf5f5f5,
+  bgTertiary: 0xeeeeee,
+  bgPanel: 0xffffff,
+  bgPanelLight: 0xfafafa,
 
-  textPrimary: 0xf8fafc,
-  textSecondary: 0x94a3b8,
-  textMuted: 0x64748b,
+  ink: 0x111111,
+  inkSoft: 0x444444,
+  inkMuted: 0x888888,
+  inkGhost: 0xcccccc,
+
+  textPrimary: 0x111111,
+  textSecondary: 0x555555,
+  textMuted: 0x888888,
 
   rarity: {
     noob: 0x8a8a9a,
@@ -18,38 +23,38 @@ export const Colors = {
   },
 
   function: {
-    coin: 0x22d3ee,
-    energy: 0xa855f7,
-    streetCred: 0xf59e0b,
+    coin: 0x111111,
+    energy: 0x111111,
+    streetCred: 0x111111,
     bust: 0xef4444,
-    primary: 0x6366f1,
+    primary: 0x111111,
     success: 0x22c55e,
     danger: 0xdc2626,
   },
 
   surface: {
-    floorDark: 0x12182e,
-    floorLight: 0x1c2545,
-    deskTop: 0x2a3358,
-    deskTopLight: 0x3a466e,
-    deskFront: 0x1a2042,
-    chairBack: 0x252d4f,
-    chairSeat: 0x1a2042,
-    pcTowerLight: 0x2a3358,
-    pcTowerDark: 0x141a30,
-    screenFrame: 0x0c1024,
+    floorDark: 0xffffff,
+    floorLight: 0xffffff,
+    deskTop: 0xffffff,
+    deskTopLight: 0xffffff,
+    deskFront: 0xffffff,
+    chairBack: 0xffffff,
+    chairSeat: 0xffffff,
+    pcTowerLight: 0xffffff,
+    pcTowerDark: 0xffffff,
+    screenFrame: 0x111111,
   },
 } as const;
 
 export const ColorsHex = {
-  bgPrimary: '#1a1a2e',
-  bgSecondary: '#16213e',
-  textPrimary: '#f8fafc',
-  textSecondary: '#94a3b8',
-  textMuted: '#64748b',
-  coin: '#22d3ee',
-  energy: '#a855f7',
-  streetCred: '#f59e0b',
+  bgPrimary: '#ffffff',
+  bgSecondary: '#f5f5f5',
+  textPrimary: '#111111',
+  textSecondary: '#555555',
+  textMuted: '#888888',
+  coin: '#111111',
+  energy: '#111111',
+  streetCred: '#111111',
 } as const;
 
 export const Fonts = {
@@ -58,8 +63,15 @@ export const Fonts = {
 } as const;
 
 export const Layout = {
-  hudHeight: 88,
+  hudHeight: 64,
   hudPadding: 24,
   pcSpacing: 220,
   floorTopRatio: 0.55,
+} as const;
+
+export const Stroke = {
+  thick: 2.5,
+  medium: 1.8,
+  thin: 1.2,
+  dashed: 1.5,
 } as const;

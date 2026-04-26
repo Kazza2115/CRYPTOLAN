@@ -1,23 +1,23 @@
 import Phaser from 'phaser';
-import { Colors, Fonts } from '../config/theme';
-import { TILE_H, TILE_W, iso } from '../config/iso';
+import { Colors, Fonts, Stroke } from '../config/theme';
+import { iso } from '../config/iso';
 import type { Pc } from '../types';
 
 const DESK_DEPTH = 1.0;
-const DESK_WIDTH = 1.4;
+const DESK_WIDTH = 1.5;
 const DESK_TOP_Z = 38;
+const DESK_FRONT_DEPTH = 30;
 
-const SCREEN_HEIGHT = 56;
-const SCREEN_WIDTH_PX = 60;
-const SCREEN_THICKNESS = 6;
+const SCREEN_WIDTH_PX = 56;
+const SCREEN_HEIGHT_PX = 36;
+const SCREEN_STAND_HEIGHT = 12;
 
-const TOWER_WIDTH = 14;
-const TOWER_DEPTH = 14;
-const TOWER_HEIGHT = 50;
+const TOWER_WIDTH_W = 0.18;
+const TOWER_DEPTH_W = 0.18;
+const TOWER_HEIGHT = 46;
 
-const CHAIR_BACK_HEIGHT = 90;
-const CHAIR_SEAT_Z = 28;
-const CHAIR_WIDTH_PX = 38;
+const CHAIR_BACK_HEIGHT = 92;
+const CHAIR_SEAT_Z = 26;
 
 export type StationOrientation = 'back-wall' | 'right-wall';
 
@@ -29,9 +29,7 @@ interface StationConfig {
 
 export class IsoPcStation extends Phaser.GameObjects.Container {
   private readonly graphics: Phaser.GameObjects.Graphics;
-  private readonly screenGlow: Phaser.GameObjects.Graphics;
   private readonly label: Phaser.GameObjects.Text;
-  private screenTween: Phaser.Tweens.Tween | null = null;
   private readonly pc: Pc;
   private readonly orientation: StationOrientation;
 
@@ -41,30 +39,31 @@ export class IsoPcStation extends Phaser.GameObjects.Container {
     super(scene, screen.x, screen.y);
 
     this.pc = pc;
+    void this.pc;
     this.orientation = orientation;
     this.setDepth((worldX + worldY) * 1000);
 
     this.graphics = scene.add.graphics();
-    this.screenGlow = scene.add.graphics();
-    this.add([this.screenGlow, this.graphics]);
+    this.add(this.graphics);
 
-    this.label = scene.add.text(0, TILE_H * 0.9, `PC ${pc.slotIndex + 1}`, {
+    this.label = scene.add.text(0, 64, '', {
       fontFamily: Fonts.body,
-      fontSize: '12px',
-      fontStyle: '700',
-      color: pc.locked ? '#64748b' : '#94a3b8',
+      fontSize: '11px',
+      fontStyle: '600',
+      color: pc.locked ? '#888888' : '#111111',
     });
     this.label.setOrigin(0.5, 0);
     this.add(this.label);
 
     if (pc.locked) {
       this.drawLockedFootprint();
+      this.label.setText(`Construire`);
     } else {
       this.drawDesk();
       this.drawTower();
-      this.drawChair();
       this.drawScreen();
-      this.startIdleAnimations();
+      this.drawChair();
+      this.label.setText(`PC ${pc.slotIndex + 1}`);
     }
 
     scene.add.existing(this);
@@ -73,6 +72,25 @@ export class IsoPcStation extends Phaser.GameObjects.Container {
   private localPoint(wx: number, wy: number, wz = 0): { x: number; y: number } {
     const p = iso(wx, wy, wz);
     return { x: p.x - this.x, y: p.y - this.y };
+  }
+
+  private quadPath(
+    g: Phaser.GameObjects.Graphics,
+    p0: { x: number; y: number },
+    cp: { x: number; y: number },
+    p1: { x: number; y: number },
+    segments = 14,
+  ): { x: number; y: number } {
+    let prev = p0;
+    for (let i = 1; i <= segments; i++) {
+      const t = i / segments;
+      const omt = 1 - t;
+      const x = omt * omt * p0.x + 2 * omt * t * cp.x + t * t * p1.x;
+      const y = omt * omt * p0.y + 2 * omt * t * cp.y + t * t * p1.y;
+      g.lineBetween(prev.x, prev.y, x, y);
+      prev = { x, y };
+    }
+    return prev;
   }
 
   private drawLockedFootprint(): void {
@@ -85,56 +103,45 @@ export class IsoPcStation extends Phaser.GameObjects.Container {
     const c = this.localPoint(halfW, halfD);
     const d = this.localPoint(-halfW, halfD);
 
-    const dashPattern = (start: { x: number; y: number }, end: { x: number; y: number }) => {
-      const dashLen = 8;
-      const gapLen = 6;
+    const dashed = (start: { x: number; y: number }, end: { x: number; y: number }): void => {
+      const dash = 7;
+      const gap = 5;
       const dx = end.x - start.x;
       const dy = end.y - start.y;
       const len = Math.hypot(dx, dy);
       const ux = dx / len;
       const uy = dy / len;
       let traveled = 0;
+      g.lineStyle(Stroke.dashed, Colors.inkGhost, 1);
       while (traveled < len) {
-        const remaining = Math.min(dashLen, len - traveled);
+        const remaining = Math.min(dash, len - traveled);
         g.lineBetween(
           start.x + ux * traveled,
           start.y + uy * traveled,
           start.x + ux * (traveled + remaining),
           start.y + uy * (traveled + remaining),
         );
-        traveled += dashLen + gapLen;
+        traveled += dash + gap;
       }
     };
 
-    g.lineStyle(2, Colors.function.success, 0.55);
-    dashPattern(a, b);
-    dashPattern(b, c);
-    dashPattern(c, d);
-    dashPattern(d, a);
-
-    g.fillStyle(Colors.function.success, 0.06);
-    g.beginPath();
-    g.moveTo(a.x, a.y);
-    g.lineTo(b.x, b.y);
-    g.lineTo(c.x, c.y);
-    g.lineTo(d.x, d.y);
-    g.closePath();
-    g.fillPath();
+    dashed(a, b);
+    dashed(b, c);
+    dashed(c, d);
+    dashed(d, a);
 
     const center = this.localPoint(0, 0);
-    g.fillStyle(Colors.function.success, 0.85);
-    g.fillCircle(center.x, center.y, 14);
-    g.fillStyle(Colors.bgPrimary, 1);
-    const plus = 6;
-    g.fillRect(center.x - plus, center.y - 1.5, plus * 2, 3);
-    g.fillRect(center.x - 1.5, center.y - plus, 3, plus * 2);
-
-    this.label.setText('Construire');
-    this.label.setColor('#22c55e');
+    g.lineStyle(Stroke.medium, Colors.inkMuted, 1);
+    g.strokeCircle(center.x, center.y, 11);
+    const plus = 5;
+    g.lineBetween(center.x - plus, center.y, center.x + plus, center.y);
+    g.lineBetween(center.x, center.y - plus, center.x, center.y + plus);
   }
 
   private drawDesk(): void {
     const g = this.graphics;
+    g.lineStyle(Stroke.medium, Colors.ink, 1);
+
     const halfW = DESK_WIDTH / 2;
     const halfD = DESK_DEPTH / 2;
 
@@ -143,257 +150,195 @@ export class IsoPcStation extends Phaser.GameObjects.Container {
     const topSE = this.localPoint(halfW, halfD, DESK_TOP_Z);
     const topSW = this.localPoint(-halfW, halfD, DESK_TOP_Z);
 
-    g.fillGradientStyle(
-      Colors.surface.deskTopLight,
-      Colors.surface.deskTop,
-      Colors.surface.deskTop,
-      Colors.surface.deskFront,
-      1,
-      1,
-      1,
-      1,
-    );
     g.beginPath();
     g.moveTo(topNW.x, topNW.y);
     g.lineTo(topNE.x, topNE.y);
     g.lineTo(topSE.x, topSE.y);
     g.lineTo(topSW.x, topSW.y);
     g.closePath();
-    g.fillPath();
-
-    g.lineStyle(1, Colors.bgPanelLight, 0.4);
     g.strokePath();
 
-    const botSW = this.localPoint(-halfW, halfD, 0);
-    const botSE = this.localPoint(halfW, halfD, 0);
-    g.fillStyle(Colors.surface.deskFront, 1);
+    const botSW = { x: topSW.x, y: topSW.y + DESK_FRONT_DEPTH };
+    const botSE = { x: topSE.x, y: topSE.y + DESK_FRONT_DEPTH };
     g.beginPath();
     g.moveTo(topSW.x, topSW.y);
-    g.lineTo(topSE.x, topSE.y);
-    g.lineTo(botSE.x, botSE.y);
     g.lineTo(botSW.x, botSW.y);
-    g.closePath();
-    g.fillPath();
-
-    const botNE = this.localPoint(halfW, -halfD, 0);
-    g.fillStyle(0x0e1326, 1);
-    g.beginPath();
-    g.moveTo(topNE.x, topNE.y);
-    g.lineTo(topSE.x, topSE.y);
     g.lineTo(botSE.x, botSE.y);
-    g.lineTo(botNE.x, botNE.y);
+    g.lineTo(topSE.x, topSE.y);
     g.closePath();
-    g.fillPath();
+    g.strokePath();
 
-    g.lineStyle(1, Colors.bgPanelLight, 0.25);
-    g.lineBetween(topSW.x, topSW.y, botSW.x, botSW.y);
-    g.lineBetween(topSE.x, topSE.y, botSE.x, botSE.y);
+    const supportSide = this.orientation === 'back-wall' ? -1 : 1;
+    const supX = (DESK_WIDTH / 2 - 0.18) * supportSide;
+    const supportTop = this.localPoint(supX, halfD - 0.05, 0);
+    const supportBottom = this.localPoint(supX, halfD + 0.18, 0);
+    g.beginPath();
+    g.moveTo(supportTop.x, supportTop.y - 4);
+    g.lineTo(supportTop.x, supportTop.y + 14);
+    g.lineTo(supportBottom.x, supportBottom.y + 14);
+    g.lineTo(supportBottom.x, supportBottom.y - 4);
+    g.closePath();
+    g.strokePath();
   }
 
   private drawTower(): void {
     const g = this.graphics;
+    g.lineStyle(Stroke.medium, Colors.ink, 1);
+
     const towerSide = this.orientation === 'back-wall' ? 1 : -1;
-    const tx = (DESK_WIDTH / 2 - 0.18) * towerSide;
-    const ty = -DESK_DEPTH / 2 + 0.3;
+    const tx = (DESK_WIDTH / 2 - 0.15) * towerSide;
+    const ty = -DESK_DEPTH / 2 + 0.25;
 
     const baseZ = DESK_TOP_Z;
     const topZ = DESK_TOP_Z + TOWER_HEIGHT;
-
-    const halfW = TOWER_WIDTH / TILE_W;
-    const halfD = TOWER_DEPTH / TILE_H;
+    const halfW = TOWER_WIDTH_W;
+    const halfD = TOWER_DEPTH_W;
 
     const topFL = this.localPoint(tx - halfW, ty - halfD, topZ);
     const topFR = this.localPoint(tx + halfW, ty - halfD, topZ);
     const topBR = this.localPoint(tx + halfW, ty + halfD, topZ);
     const topBL = this.localPoint(tx - halfW, ty + halfD, topZ);
-    const botBL = this.localPoint(tx - halfW, ty + halfD, baseZ);
     const botBR = this.localPoint(tx + halfW, ty + halfD, baseZ);
     const botFR = this.localPoint(tx + halfW, ty - halfD, baseZ);
-
-    g.fillStyle(Colors.surface.pcTowerLight, 1);
+    const botFL = this.localPoint(tx - halfW, ty - halfD, baseZ);
     g.beginPath();
     g.moveTo(topFL.x, topFL.y);
     g.lineTo(topFR.x, topFR.y);
     g.lineTo(topBR.x, topBR.y);
     g.lineTo(topBL.x, topBL.y);
     g.closePath();
-    g.fillPath();
-
-    g.fillStyle(Colors.surface.pcTowerDark, 1);
+    g.strokePath();
+    g.beginPath();
+    g.moveTo(topFL.x, topFL.y);
+    g.lineTo(botFL.x, botFL.y);
+    g.lineTo(botFR.x, botFR.y);
+    g.lineTo(topFR.x, topFR.y);
+    g.closePath();
+    g.strokePath();
     g.beginPath();
     g.moveTo(topFR.x, topFR.y);
-    g.lineTo(topBR.x, topBR.y);
-    g.lineTo(botBR.x, botBR.y);
     g.lineTo(botFR.x, botFR.y);
-    g.closePath();
-    g.fillPath();
-
-    g.fillStyle(0x0a0e1c, 1);
-    g.beginPath();
-    g.moveTo(topBL.x, topBL.y);
-    g.lineTo(topBR.x, topBR.y);
     g.lineTo(botBR.x, botBR.y);
-    g.lineTo(botBL.x, botBL.y);
+    g.lineTo(topBR.x, topBR.y);
     g.closePath();
-    g.fillPath();
-
-    g.lineStyle(1, Colors.bgPanelLight, 0.4);
-    g.lineBetween(topFL.x, topFL.y, topFR.x, topFR.y);
-    g.lineBetween(topFR.x, topFR.y, topBR.x, topBR.y);
-    g.lineBetween(topBR.x, topBR.y, botBR.x, botBR.y);
-
-    const ledOffset = 8;
-    g.fillStyle(Colors.function.coin, 1);
-    g.fillCircle(
-      (topFR.x + topBR.x) / 2,
-      (topFR.y + topBR.y) / 2 + ledOffset,
-      2,
-    );
-  }
-
-  private drawChair(): void {
-    const g = this.graphics;
-    const halfW = DESK_WIDTH / 2;
-    const halfD = DESK_DEPTH / 2;
-
-    const cx = 0;
-    const cy = halfD + 0.6;
-
-    const baseScreen = this.localPoint(cx, cy, 0);
-    g.fillStyle(0x0a0e1c, 1);
-    g.fillEllipse(baseScreen.x, baseScreen.y + 4, CHAIR_WIDTH_PX + 6, 14);
-
-    g.lineStyle(1.5, Colors.bgPanelLight, 0.45);
-    for (let i = 0; i < 5; i++) {
-      const angle = (Math.PI * 2 * i) / 5 - Math.PI / 2;
-      const lx = baseScreen.x + Math.cos(angle) * 22;
-      const ly = baseScreen.y + Math.sin(angle) * 11;
-      g.lineBetween(baseScreen.x, baseScreen.y, lx, ly);
-      g.fillStyle(Colors.bgPanelLight, 1);
-      g.fillCircle(lx, ly, 2);
-    }
-
-    const seatScreen = this.localPoint(cx, cy, CHAIR_SEAT_Z);
-    g.fillStyle(0x161b32, 1);
-    g.fillEllipse(seatScreen.x, seatScreen.y, CHAIR_WIDTH_PX, 14);
-    g.lineStyle(1, Colors.bgPanelLight, 0.4);
-    g.strokeEllipse(seatScreen.x, seatScreen.y, CHAIR_WIDTH_PX, 14);
-
-    const backTopZ = CHAIR_SEAT_Z + CHAIR_BACK_HEIGHT;
-    const backBotZ = CHAIR_SEAT_Z + 6;
-
-    const backWidth = halfW * 0.95;
-    const backNearY = cy + 0.05;
-
-    const tlA = this.localPoint(-backWidth, backNearY, backTopZ);
-    const trA = this.localPoint(backWidth, backNearY, backTopZ);
-    const blA = this.localPoint(-backWidth, backNearY, backBotZ);
-    const brA = this.localPoint(backWidth, backNearY, backBotZ);
-
-    g.fillGradientStyle(0x12172c, 0x12172c, 0x1c2143, 0x1c2143, 1, 1, 1, 1);
-    g.beginPath();
-    g.moveTo(tlA.x, tlA.y);
-    g.lineTo(trA.x, trA.y);
-    g.lineTo(brA.x, brA.y);
-    g.lineTo(blA.x, blA.y);
-    g.closePath();
-    g.fillPath();
-
-    g.lineStyle(1.5, Colors.bgPanelLight, 0.45);
-    g.strokePath();
-
-    const wingW = 6;
-    g.fillStyle(0x0c1024, 1);
-    g.fillRect(tlA.x - 1, tlA.y, wingW, blA.y - tlA.y);
-    g.fillRect(trA.x - wingW + 1, trA.y, wingW, brA.y - trA.y);
-
-    const accent = pcAccentColor(this.pc);
-    g.fillStyle(accent, 0.8);
-    g.fillRect(tlA.x + 4, tlA.y + 2, 2, blA.y - tlA.y - 4);
-    g.fillRect(trA.x - 6, trA.y + 2, 2, brA.y - trA.y - 4);
-
-    const headTopZ = backTopZ + 12;
-    const headBotZ = backTopZ - 4;
-    const headWidth = backWidth * 0.55;
-    const htlA = this.localPoint(-headWidth, backNearY, headTopZ);
-    const htrA = this.localPoint(headWidth, backNearY, headTopZ);
-    const hblA = this.localPoint(-headWidth, backNearY, headBotZ);
-    const hbrA = this.localPoint(headWidth, backNearY, headBotZ);
-    g.fillStyle(0x0c1024, 1);
-    g.beginPath();
-    g.moveTo(htlA.x, htlA.y);
-    g.lineTo(htrA.x, htrA.y);
-    g.lineTo(hbrA.x, hbrA.y);
-    g.lineTo(hblA.x, hblA.y);
-    g.closePath();
-    g.fillPath();
-    g.lineStyle(1, Colors.bgPanelLight, 0.4);
     g.strokePath();
   }
 
   private drawScreen(): void {
     const g = this.graphics;
-    const glow = this.screenGlow;
+    g.fillStyle(Colors.ink, 1);
 
     const screenAnchor = this.localPoint(0, -DESK_DEPTH / 2 + 0.18, DESK_TOP_Z);
     const standBaseY = screenAnchor.y;
-    const standTopY = standBaseY - 14;
+    const standTopY = standBaseY - SCREEN_STAND_HEIGHT;
 
-    g.fillStyle(0x0c1024, 1);
-    g.fillRect(screenAnchor.x - 8, standTopY, 16, 4);
-    g.fillRect(screenAnchor.x - 2, standTopY - 14, 4, 14);
+    g.lineStyle(Stroke.thin, Colors.ink, 1);
+    g.fillRect(screenAnchor.x - 9, standTopY, 18, 3);
+    g.fillRect(screenAnchor.x - 1.5, standTopY - SCREEN_STAND_HEIGHT, 3, SCREEN_STAND_HEIGHT);
 
     const sx = screenAnchor.x - SCREEN_WIDTH_PX / 2;
-    const sy = standTopY - 14 - SCREEN_HEIGHT;
+    const sy = standTopY - SCREEN_STAND_HEIGHT - SCREEN_HEIGHT_PX;
+    g.fillRect(sx, sy, SCREEN_WIDTH_PX, SCREEN_HEIGHT_PX);
 
-    g.fillStyle(0x0a0e1c, 1);
-    g.fillRoundedRect(sx - SCREEN_THICKNESS, sy - SCREEN_THICKNESS, SCREEN_WIDTH_PX + SCREEN_THICKNESS * 2, SCREEN_HEIGHT + SCREEN_THICKNESS * 2, 4);
-
-    const accent = pcAccentColor(this.pc);
-    g.fillGradientStyle(accent, accent, 0x0c1024, 0x0c1024, 0.55, 0.55, 1, 1);
-    g.fillRoundedRect(sx, sy, SCREEN_WIDTH_PX, SCREEN_HEIGHT, 2);
-
-    g.fillStyle(0xf8fafc, 0.18);
-    g.fillRect(sx + 4, sy + 4, SCREEN_WIDTH_PX - 8, 2);
-
-    glow.clear();
-    glow.fillStyle(accent, 0.22);
-    glow.fillRoundedRect(sx - 12, sy - 12, SCREEN_WIDTH_PX + 24, SCREEN_HEIGHT + 24, 8);
-
-    if (this.scene.renderer.type === Phaser.WEBGL) {
-      this.graphics.postFX?.addGlow(accent, 0.6, 0, false, 0.1, 6);
-    }
+    g.lineStyle(Stroke.medium, Colors.ink, 1);
+    g.strokeRect(sx, sy, SCREEN_WIDTH_PX, SCREEN_HEIGHT_PX);
   }
 
-  private startIdleAnimations(): void {
-    this.screenTween?.stop();
-    this.screenGlow.alpha = 0.6;
-    this.screenTween = this.scene.tweens.add({
-      targets: this.screenGlow,
-      alpha: { from: 0.35, to: 0.85 },
-      duration: 1800 + Math.random() * 600,
-      ease: 'Sine.easeInOut',
-      yoyo: true,
-      repeat: -1,
-    });
+  private drawChair(): void {
+    const g = this.graphics;
+    g.lineStyle(Stroke.medium, Colors.ink, 1);
+
+    const cy = DESK_DEPTH / 2 + 0.55;
+    const baseScreen = this.localPoint(0, cy, 0);
+
+    const baseRX = 28;
+    const baseRY = 9;
+    g.beginPath();
+    for (let i = 0; i < 5; i++) {
+      const angle = (Math.PI * 2 * i) / 5 - Math.PI / 2;
+      const lx = baseScreen.x + Math.cos(angle) * baseRX;
+      const ly = baseScreen.y + Math.sin(angle) * baseRY;
+      g.moveTo(baseScreen.x, baseScreen.y);
+      g.lineTo(lx, ly);
+      g.fillStyle(Colors.ink, 1);
+      g.fillCircle(lx, ly, 2);
+    }
+    g.strokePath();
+
+    const stemBottom = this.localPoint(0, cy, 4);
+    const stemTop = this.localPoint(0, cy, CHAIR_SEAT_Z - 4);
+    g.lineBetween(stemBottom.x, stemBottom.y, stemTop.x, stemTop.y);
+
+    const seatScreen = this.localPoint(0, cy, CHAIR_SEAT_Z);
+    g.beginPath();
+    g.strokeEllipse(seatScreen.x, seatScreen.y, 36, 12);
+
+    const backNearY = cy - 0.05;
+    const backTopZ = CHAIR_SEAT_Z + CHAIR_BACK_HEIGHT;
+    const backBotZ = CHAIR_SEAT_Z + 4;
+    const backHalfWidth = 20;
+    const wingExtra = 8;
+
+    const seatLeft = this.localPoint(0, cy, CHAIR_SEAT_Z + 2);
+    const blLeft = { x: seatLeft.x - backHalfWidth, y: seatLeft.y - (CHAIR_SEAT_Z + 4 - CHAIR_SEAT_Z) };
+    const blRight = { x: seatLeft.x + backHalfWidth, y: seatLeft.y - (CHAIR_SEAT_Z + 4 - CHAIR_SEAT_Z) };
+
+    const tCenter = this.localPoint(0, backNearY, backTopZ);
+    const bCenter = this.localPoint(0, backNearY, backBotZ);
+
+    const topY = tCenter.y;
+    const botY = bCenter.y;
+    const cxBack = tCenter.x;
+
+    const leftBot = { x: cxBack - backHalfWidth - wingExtra, y: botY };
+    const leftTop = { x: cxBack - backHalfWidth + 2, y: topY + 6 };
+    const leftCp = {
+      x: cxBack - backHalfWidth - wingExtra - 4,
+      y: botY - (botY - topY) * 0.55,
+    };
+    this.quadPath(g, leftBot, leftCp, leftTop);
+
+    const headBaseLeft = leftTop;
+    const headBaseRight = { x: cxBack + backHalfWidth - 2, y: topY + 6 };
+    const headCp = { x: cxBack, y: topY - 14 };
+    this.quadPath(g, headBaseLeft, headCp, headBaseRight);
+
+    const rightBot = { x: cxBack + backHalfWidth + wingExtra, y: botY };
+    const rightCp = {
+      x: cxBack + backHalfWidth + wingExtra + 4,
+      y: botY - (botY - topY) * 0.55,
+    };
+    this.quadPath(g, headBaseRight, rightCp, rightBot);
+
+    g.lineBetween(rightBot.x, rightBot.y, blRight.x, blRight.y);
+    g.lineBetween(blRight.x, blRight.y, blLeft.x, blLeft.y);
+    g.lineBetween(blLeft.x, blLeft.y, leftBot.x, leftBot.y);
+
+    const wingTopOffset = (botY - topY) * 0.18;
+    const innerLeftTop = { x: cxBack - backHalfWidth + 2, y: topY + 6 + wingTopOffset };
+    const innerLeftBot = { x: cxBack - backHalfWidth + 2, y: botY - 4 };
+    const innerLeftCp = {
+      x: cxBack - backHalfWidth + 8,
+      y: botY - (botY - topY) * 0.45,
+    };
+    this.quadPath(g, innerLeftTop, innerLeftCp, innerLeftBot);
+
+    const innerRightTop = { x: cxBack + backHalfWidth - 2, y: topY + 6 + wingTopOffset };
+    const innerRightBot = { x: cxBack + backHalfWidth - 2, y: botY - 4 };
+    const innerRightCp = {
+      x: cxBack + backHalfWidth - 8,
+      y: botY - (botY - topY) * 0.45,
+    };
+    this.quadPath(g, innerRightTop, innerRightCp, innerRightBot);
+
+    const headRX = 9;
+    const headRY = 5;
+    const headCx = cxBack;
+    const headCy = topY - 4;
+    g.strokeEllipse(headCx, headCy, headRX * 2, headRY * 2);
   }
 
   override destroy(fromScene?: boolean): void {
-    this.screenTween?.stop();
     super.destroy(fromScene);
-  }
-}
-
-function pcAccentColor(pc: Pc): number {
-  if (pc.locked) return Colors.bgPanelLight;
-  switch (pc.tier) {
-    case 'pro':
-      return Colors.rarity.legend;
-    case 'rgb':
-      return Colors.rarity.esport;
-    case 'gamer':
-      return Colors.rarity.pro;
-    default:
-      return Colors.function.coin;
   }
 }

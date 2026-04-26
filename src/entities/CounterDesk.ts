@@ -1,10 +1,10 @@
 import Phaser from 'phaser';
-import { Colors } from '../config/theme';
+import { Colors, Stroke } from '../config/theme';
 import { iso } from '../config/iso';
 
-const COUNTER_W = 1.6;
-const COUNTER_D = 1.0;
-const COUNTER_H = 70;
+const COUNTER_W = 1.8;
+const COUNTER_D = 1.2;
+const COUNTER_H = 76;
 
 export class CounterDesk extends Phaser.GameObjects.Container {
   constructor(scene: Phaser.Scene, worldX: number, worldY: number) {
@@ -14,11 +14,12 @@ export class CounterDesk extends Phaser.GameObjects.Container {
 
     const g = scene.add.graphics();
     this.add(g);
+    g.lineStyle(Stroke.medium, Colors.ink, 1);
 
     const halfW = COUNTER_W / 2;
     const halfD = COUNTER_D / 2;
 
-    const local = (wx: number, wy: number, wz = 0) => {
+    const local = (wx: number, wy: number, wz = 0): { x: number; y: number } => {
       const p = iso(worldX + wx, worldY + wy, wz);
       return { x: p.x - this.x, y: p.y - this.y };
     };
@@ -28,62 +29,44 @@ export class CounterDesk extends Phaser.GameObjects.Container {
     const tSE = local(halfW, halfD, COUNTER_H);
     const tSW = local(-halfW, halfD, COUNTER_H);
 
-    g.fillGradientStyle(
-      Colors.surface.deskTopLight,
-      Colors.surface.deskTop,
-      Colors.surface.deskTop,
-      Colors.surface.deskFront,
-      1,
-      1,
-      1,
-      1,
-    );
     g.beginPath();
     g.moveTo(tNW.x, tNW.y);
     g.lineTo(tNE.x, tNE.y);
     g.lineTo(tSE.x, tSE.y);
     g.lineTo(tSW.x, tSW.y);
     g.closePath();
-    g.fillPath();
-    g.lineStyle(1, Colors.bgPanelLight, 0.4);
     g.strokePath();
 
-    const bSW = local(-halfW, halfD, 0);
-    const bSE = local(halfW, halfD, 0);
-    g.fillStyle(Colors.surface.deskFront, 1);
+    const front = 30;
+    const bSW = { x: tSW.x, y: tSW.y + front };
+    const bSE = { x: tSE.x, y: tSE.y + front };
     g.beginPath();
     g.moveTo(tSW.x, tSW.y);
-    g.lineTo(tSE.x, tSE.y);
-    g.lineTo(bSE.x, bSE.y);
     g.lineTo(bSW.x, bSW.y);
+    g.lineTo(bSE.x, bSE.y);
+    g.lineTo(tSE.x, tSE.y);
     g.closePath();
-    g.fillPath();
+    g.strokePath();
 
-    const bNE = local(halfW, -halfD, 0);
-    g.fillStyle(0x0e1326, 1);
+    const bNE = { x: tNE.x, y: tNE.y + front };
     g.beginPath();
     g.moveTo(tNE.x, tNE.y);
-    g.lineTo(tSE.x, tSE.y);
-    g.lineTo(bSE.x, bSE.y);
     g.lineTo(bNE.x, bNE.y);
+    g.lineTo(bSE.x, bSE.y);
     g.closePath();
-    g.fillPath();
+    g.strokePath();
 
-    const monitorAnchor = local(halfW * 0.4, -halfD * 0.5, COUNTER_H);
-    g.fillStyle(0x0a0e1c, 1);
-    g.fillRect(monitorAnchor.x - 18, monitorAnchor.y - 30, 36, 26);
-    g.fillStyle(Colors.function.primary, 0.55);
-    g.fillRect(monitorAnchor.x - 16, monitorAnchor.y - 28, 32, 22);
+    const monitorAnchor = local(halfW * 0.35, -halfD * 0.45, COUNTER_H);
+    g.fillStyle(Colors.ink, 1);
+    g.fillRect(monitorAnchor.x - 12, monitorAnchor.y - 22, 24, 18);
+    g.lineStyle(Stroke.thin, Colors.ink, 1);
+    g.fillStyle(Colors.bgPrimary, 1);
+    g.fillRect(monitorAnchor.x - 1.5, monitorAnchor.y - 4, 3, 4);
 
-    const boxAnchor = local(-halfW * 0.4, -halfD * 0.4, COUNTER_H);
-    g.fillStyle(Colors.surface.deskFront, 1);
-    g.fillRect(boxAnchor.x - 10, boxAnchor.y - 10, 20, 12);
-    g.lineStyle(1, Colors.bgPanelLight, 0.5);
-    g.strokeRect(boxAnchor.x - 10, boxAnchor.y - 10, 20, 12);
-
-    if (scene.renderer.type === Phaser.WEBGL) {
-      g.postFX?.addGlow(Colors.function.primary, 0.6, 0, false, 0.1, 6);
-    }
+    const boxAnchor = local(-halfW * 0.4, -halfD * 0.3, COUNTER_H);
+    g.lineStyle(Stroke.medium, Colors.ink, 1);
+    g.strokeRect(boxAnchor.x - 9, boxAnchor.y - 9, 18, 11);
+    g.lineBetween(boxAnchor.x - 9, boxAnchor.y - 4, boxAnchor.x + 9, boxAnchor.y - 4);
 
     scene.add.existing(this);
   }

@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#1a1a2e" />
+    <meta name="theme-color" content="#ffffff" />
     <title>Crypto Lan</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -13,10 +13,9 @@
     />
     <style>
       :root {
-        --bg-primary: #1a1a2e;
-        --bg-secondary: #16213e;
-        --text-primary: #f8fafc;
-        --text-secondary: #94a3b8;
+        --bg-primary: #ffffff;
+        --ink: #111111;
+        --ink-muted: #888888;
       }
       *,
       *::before,
@@ -30,7 +29,7 @@
         height: 100%;
         width: 100%;
         background: var(--bg-primary);
-        color: var(--text-primary);
+        color: var(--ink);
         font-family: 'Nunito', sans-serif;
         overflow: hidden;
         overscroll-behavior: none;
@@ -53,10 +52,10 @@
         position: fixed;
         bottom: 10px;
         right: 14px;
-        font-size: 11px;
-        color: var(--text-secondary);
+        font-size: 10px;
+        color: var(--ink-muted);
         font-family: 'JetBrains Mono', monospace;
-        opacity: 0.45;
+        opacity: 0.5;
         pointer-events: none;
         user-select: none;
         letter-spacing: 0.04em;
@@ -67,7 +66,7 @@
     <div id="app">
       <div id="game"></div>
     </div>
-    <div class="build-tag" id="build-tag">crypto-lan · proto v0.0.2</div>
+    <div class="build-tag" id="build-tag">crypto-lan · proto v0.0.3 · wireframe</div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
